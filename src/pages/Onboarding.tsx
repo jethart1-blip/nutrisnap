@@ -73,6 +73,7 @@ export default function Onboarding() {
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({})
   const [targetsLoading, setTargetsLoading] = useState(false)
   const [aiTargets, setAiTargets] = useState<DailyTargets | null>(null)
+  const [targetWeight, setTargetWeight] = useState('')
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -152,6 +153,7 @@ export default function Onboarding() {
       heightInches: Number(form.heightInches),
       activityLevel: form.activityLevel,
       goal: form.goal,
+      targetWeightLbs: targetWeight.trim() === '' ? undefined : Number(targetWeight),
     }
     const dailyTargets = aiTargets ?? calculateGoals(profileBase)
     saveProfile({
@@ -305,6 +307,17 @@ export default function Onboarding() {
               {errors.heightInches && (
                 <p className="mt-1 text-xs font-body text-danger">{errors.heightInches}</p>
               )}
+
+              <label className="block text-sm font-body font-medium text-textPrimary mb-1 mt-4">
+                Target Weight (lbs, optional)
+              </label>
+              <input
+                type="number"
+                value={targetWeight}
+                onChange={(e) => setTargetWeight(e.target.value)}
+                placeholder="e.g. 170 (optional)"
+                className="w-full rounded-xl border-2 bg-pageBg px-4 py-3 font-body text-textPrimary placeholder:text-textMuted focus:outline-none transition-colors border-surface2 focus:border-calorie"
+              />
             </div>
           )}
 

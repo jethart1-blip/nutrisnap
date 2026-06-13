@@ -24,6 +24,16 @@ function getTodayString(): string {
   return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
 }
 
+function todayDateString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function hasLoggedWeightToday(entries: WeightEntry[]): boolean {
+  const today = todayDateString();
+  return entries.some((e) => e.date === today);
+}
+
 function isToday(isoDate: string): boolean {
   const d = new Date(isoDate);
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` === getTodayString();
@@ -87,6 +97,8 @@ export function Home() {
   const [logs, setLogs] = useState<FoodLogEntry[]>([]);
   const [allLogs, setAllLogs] = useState<FoodLogEntry[]>([]);
   const [latestWeight, setLatestWeight] = useState<WeightEntry | null>(null);
+  const [showWeightReminder, setShowWeightReminder] = useState(false);
+  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
 
   useEffect(() => {
     const p = getProfile();
@@ -98,11 +110,20 @@ export function Home() {
     const all = getFoodLogs();
     setAllLogs(all);
     setLogs(all.filter((l) => isToday(l.date)));
-    const weightEntries = getWeightEntries().sort((a, b) => b.date.localeCompare(a.date));
-    setLatestWeight(weightEntries[0] ?? null);
+    const allWeightEntries = getWeightEntries();
+    setWeightEntries(allWeightEntries);
+    const sorted = [...allWeightEntries].sort((a, b) => b.date.localeCompare(a.date));
+    setLatestWeight(sorted[0] ?? null);
+    const dismissedToday = localStorage.getItem('nutrisnap_weight_reminder_dismissed') === todayDateString();
+    setShowWeightReminder(!hasLoggedWeightToday(allWeightEntries) && !dismissedToday);
   }, [navigate]);
 
   if (!profile) return null;
+
+  function dismissWeightReminder() {
+    localStorage.setItem('nutrisnap_weight_reminder_dismissed', todayDateString());
+    setShowWeightReminder(false);
+  }
 
   const streak = computeStreak(allLogs);
   const totals = sumNutrition(logs);
@@ -157,6 +178,21 @@ export function Home() {
           </div>
           <span className="text-textMuted">→</span>
         </button>
+
+        {/* Weight reminder banner */}
+        {showWeightReminder && (
+          <div className="bg-protein/10 border border-protein/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <p className="text-sm text-textPrimary">📊 Don't forget to log today's weight!</p>
+            <div className="flex gap-2 shrink-0">
+              <button onClick={() => navigate('/progress')} className="text-xs font-semibold text-protein bg-protein/15 rounded-lg px-3 py-1.5 active:scale-95 transition-transform">
+                Log it
+              </button>
+              <button onClick={dismissWeightReminder} className="text-xs text-textMuted px-2">
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Calorie ring */}
         <div className="bg-surface rounded-2xl p-6 flex flex-col items-center">
