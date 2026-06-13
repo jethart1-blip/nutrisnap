@@ -49,10 +49,40 @@ function formatToday(): string {
   return new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 }
 
+function computeStreak(logs: FoodLogEntry[]): number {
+  if (logs.length === 0) return 0;
+
+  const uniqueDates: Date[] = [];
+  const seen = new Set<string>();
+  const sorted = [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  for (const log of sorted) {
+    const d = new Date(log.date);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      uniqueDates.push(new Date(d.getFullYear(), d.getMonth(), d.getDate()));
+    }
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const diffFromToday = (today.getTime() - uniqueDates[0].getTime()) / (1000 * 60 * 60 * 24);
+  if (diffFromToday > 1) return 0;
+
+  let streak = 1;
+  for (let i = 1; i < uniqueDates.length; i++) {
+    const gap = (uniqueDates[i - 1].getTime() - uniqueDates[i].getTime()) / (1000 * 60 * 60 * 24);
+    if (gap === 1) streak++;
+    else break;
+  }
+  return streak;
+}
+
 export function Home() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [logs, setLogs] = useState<FoodLogEntry[]>([]);
+  const [allLogs, setAllLogs] = useState<FoodLogEntry[]>([]);
 
   useEffect(() => {
     const p = getProfile();
@@ -61,11 +91,14 @@ export function Home() {
       return;
     }
     setProfile(p);
-    setLogs(getFoodLogs().filter((l) => isToday(l.date)));
+    const all = getFoodLogs();
+    setAllLogs(all);
+    setLogs(all.filter((l) => isToday(l.date)));
   }, [navigate]);
 
   if (!profile) return null;
 
+  const streak = computeStreak(allLogs);
   const totals = sumNutrition(logs);
   const targets = profile.dailyTargets;
   const caloriesRemaining = Math.max(targets.calories - totals.calories, 0);
@@ -90,6 +123,19 @@ export function Home() {
         <div>
           <p className="text-sm font-medium text-textMuted">{getGreeting()}, {profile.name.split(' ')[0]}</p>
           <h1 className="text-2xl font-display font-bold text-textPrimary">{formatToday()}</h1>
+        </div>
+
+        {/* Streak card */}
+        <div className="bg-surface rounded-2xl p-4 flex items-center gap-3">
+          <span className="text-2xl">🔥</span>
+          <div>
+            <p className="text-lg font-display font-bold text-textPrimary">
+              {streak} day{streak === 1 ? '' : 's'}
+            </p>
+            <p className="text-xs text-textMuted">
+              {streak > 0 ? 'Logging streak - keep it up!' : 'Log a meal to start your streak'}
+            </p>
+          </div>
         </div>
 
         {/* Calorie ring */}
