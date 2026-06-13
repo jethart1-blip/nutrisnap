@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Camera } from 'lucide-react';
-import type { UserProfile, FoodLogEntry, MealCategory } from '../types';
-import { getProfile, getFoodLogs } from '../lib/storage';
+import type { UserProfile, FoodLogEntry, MealCategory, WeightEntry } from '../types';
+import { getProfile, getFoodLogs, getWeightEntries } from '../lib/storage';
 
 const RING_RADIUS = 60;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -83,6 +83,7 @@ export function Home() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [logs, setLogs] = useState<FoodLogEntry[]>([]);
   const [allLogs, setAllLogs] = useState<FoodLogEntry[]>([]);
+  const [latestWeight, setLatestWeight] = useState<WeightEntry | null>(null);
 
   useEffect(() => {
     const p = getProfile();
@@ -94,6 +95,8 @@ export function Home() {
     const all = getFoodLogs();
     setAllLogs(all);
     setLogs(all.filter((l) => isToday(l.date)));
+    const weightEntries = getWeightEntries().sort((a, b) => b.date.localeCompare(a.date));
+    setLatestWeight(weightEntries[0] ?? null);
   }, [navigate]);
 
   if (!profile) return null;
@@ -137,6 +140,20 @@ export function Home() {
             </p>
           </div>
         </div>
+
+        {/* Weight card */}
+        <button onClick={() => navigate('/progress')} className="w-full bg-surface rounded-2xl p-4 flex items-center justify-between active:scale-95 transition-transform">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">⚖️</span>
+            <div className="text-left">
+              <p className="text-sm font-semibold text-textPrimary">
+                {latestWeight ? `${latestWeight.weightLbs} lbs` : 'Log your weight'}
+              </p>
+              <p className="text-xs text-textMuted">Tap to view progress</p>
+            </div>
+          </div>
+          <span className="text-textMuted">→</span>
+        </button>
 
         {/* Calorie ring */}
         <div className="bg-surface rounded-2xl p-6 flex flex-col items-center">

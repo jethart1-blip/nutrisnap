@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Camera, Calendar, Settings } from 'lucide-react';
+import { Home, Camera, Calendar, TrendingUp, Settings } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home', end: true },
   { to: '/log', icon: Camera, label: 'Log' },
   { to: '/history', icon: Calendar, label: 'History' },
+  { to: '/progress', icon: TrendingUp, label: 'Progress' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
 

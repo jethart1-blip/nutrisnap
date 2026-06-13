@@ -42,6 +42,12 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface WeightEntry {
+  id: string;
+  date: string; // ISO date string (just the date, e.g. "2026-06-13")
+  weightLbs: number;
+}
+
 export interface FoodLogEntry {
   id: string;
   date: string;

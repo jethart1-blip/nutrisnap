@@ -1,0 +1,118 @@
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import type { WeightEntry, UserProfile } from '../types';
+import { getProfile, getWeightEntries, addOrUpdateWeightEntry } from '../lib/storage';
+
+function todayDateString(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+export function Progress() {
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [entries, setEntries] = useState<WeightEntry[]>([]);
+  const [inputWeight, setInputWeight] = useState('');
+
+  useEffect(() => {
+    const p = getProfile();
+    if (!p) {
+      navigate('/onboarding');
+      return;
+    }
+    setProfile(p);
+    const all = getWeightEntries().sort((a, b) => a.date.localeCompare(b.date));
+    setEntries(all);
+    const today = all.find((e) => e.date === todayDateString());
+    setInputWeight(today ? String(today.weightLbs) : String(p.weightLbs));
+  }, [navigate]);
+
+  if (!profile) return null;
+
+  function handleLogWeight() {
+    const w = Number(inputWeight);
+    if (isNaN(w) || w <= 0) return;
+    addOrUpdateWeightEntry(todayDateString(), w);
+    setEntries(getWeightEntries().sort((a, b) => a.date.localeCompare(b.date)));
+  }
+
+  const sorted = [...entries].sort((a, b) => b.date.localeCompare(a.date));
+  const latest = sorted[0];
+  const earliest = entries[0];
+  const change = latest && earliest && latest.id !== earliest.id ? latest.weightLbs - earliest.weightLbs : 0;
+
+  const chartW = 320;
+  const chartH = 140;
+  const weights = entries.map((e) => e.weightLbs);
+  const minW = weights.length ? Math.min(...weights) - 2 : 0;
+  const maxW = weights.length ? Math.max(...weights) + 2 : 1;
+  const range = maxW - minW || 1;
+
+  const points = entries.map((e, i) => {
+    const x = entries.length > 1 ? (i / (entries.length - 1)) * chartW : chartW / 2;
+    const y = chartH - ((e.weightLbs - minW) / range) * chartH;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <div className="min-h-screen bg-pageBg">
+      <div className="max-w-sm mx-auto px-4 pt-8 pb-28 space-y-6 page-fade-in">
+        <h1 className="text-2xl font-display font-bold text-textPrimary">Progress</h1>
+
+        {/* Log weight */}
+        <div className="bg-surface rounded-2xl p-5 space-y-3">
+          <p className="text-xs font-semibold text-textMuted uppercase tracking-wide">Log Today's Weight</p>
+          <div className="flex gap-2">
+            <input
+              type="number"
+              value={inputWeight}
+              onChange={(e) => setInputWeight(e.target.value)}
+              className="flex-1 rounded-xl border-2 border-surface2 px-3 py-2 text-lg font-display font-bold text-textPrimary bg-surface focus:border-calorie outline-none"
+              placeholder="lbs"
+            />
+            <button
+              onClick={handleLogWeight}
+              className="bg-calorie text-white font-semibold rounded-xl px-5 active:scale-95 transition-transform"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+
+        {/* Stats */}
+        {entries.length > 0 && (
+          <div className="bg-surface rounded-2xl p-5 grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-textMuted">Current</p>
+              <p className="text-2xl font-display font-bold text-textPrimary">{latest.weightLbs} lbs</p>
+            </div>
+            <div>
+              <p className="text-xs text-textMuted">Change</p>
+              <p className={`text-2xl font-display font-bold ${change > 0 ? 'text-fat' : change < 0 ? 'text-success' : 'text-textPrimary'}`}>
+                {change > 0 ? '+' : ''}{change.toFixed(1)} lbs
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Chart */}
+        {entries.length > 1 ? (
+          <div className="bg-surface rounded-2xl p-5">
+            <p className="text-xs font-semibold text-textMuted uppercase tracking-wide mb-3">Weight Trend</p>
+            <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-32">
+              <polyline points={points} fill="none" stroke="var(--color-calorie)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <div className="flex justify-between text-xs text-textMuted mt-2">
+              <span>{entries[0].date}</span>
+              <span>{entries[entries.length - 1].date}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-surface rounded-2xl p-6 text-center">
+            <p className="text-sm text-textMuted">Log your weight daily to see your trend over time.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

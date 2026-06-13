@@ -6,6 +6,7 @@ import { Welcome } from './pages/Welcome'
 import LogMeal from './pages/LogMeal'
 import { History } from './pages/History'
 import { Settings } from './pages/Settings'
+import { Progress } from './pages/Progress'
 import { Layout } from './components/Layout'
 
 function ProtectedHome() {
@@ -22,6 +23,7 @@ function App() {
       <Route path="/" element={<Layout><ProtectedHome /></Layout>} />
       <Route path="/log" element={<LogMeal />} />
       <Route path="/history" element={<Layout><History /></Layout>} />
+      <Route path="/progress" element={<Layout><Progress /></Layout>} />
       <Route path="/settings" element={<Layout><Settings /></Layout>} />
       <Route path="*" element={<Navigate to="/welcome" replace />} />
     </Routes>

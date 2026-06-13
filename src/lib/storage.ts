@@ -1,4 +1,4 @@
-import type { UserProfile, FoodLogEntry } from '../types';
+import type { UserProfile, FoodLogEntry, WeightEntry } from '../types';
 
 const PROFILE_KEY = 'nutrisnap_profile';
 const LOGS_KEY = 'nutrisnap_logs';
@@ -51,7 +51,36 @@ export function deleteFoodLog(id: string): void {
   saveFoodLogs(logs);
 }
 
+const WEIGHT_KEY = 'nutrisnap_weight_entries';
+
+export function getWeightEntries(): WeightEntry[] {
+  try {
+    const raw = localStorage.getItem(WEIGHT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed as WeightEntry[] : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveWeightEntries(entries: WeightEntry[]): void {
+  localStorage.setItem(WEIGHT_KEY, JSON.stringify(entries));
+}
+
+export function addOrUpdateWeightEntry(date: string, weightLbs: number): void {
+  const entries = getWeightEntries();
+  const idx = entries.findIndex((e) => e.date === date);
+  if (idx >= 0) {
+    entries[idx].weightLbs = weightLbs;
+  } else {
+    entries.push({ id: crypto.randomUUID(), date, weightLbs });
+  }
+  saveWeightEntries(entries);
+}
+
 export function resetAllData(): void {
   localStorage.removeItem(PROFILE_KEY);
   localStorage.removeItem(LOGS_KEY);
+  localStorage.removeItem(WEIGHT_KEY);
 }
