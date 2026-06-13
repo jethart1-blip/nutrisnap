@@ -109,7 +109,7 @@ export function History() {
 
   return (
     <div className="min-h-screen bg-pageBg">
-      <div className="max-w-sm mx-auto px-4 pt-8 pb-28 space-y-6">
+      <div className="max-w-sm mx-auto px-4 pt-8 pb-28 space-y-6 page-fade-in">
 
         {/* Date nav */}
         <div className="flex items-center justify-between">

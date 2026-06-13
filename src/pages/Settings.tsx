@@ -47,15 +47,16 @@ export function Settings() {
     setRegenerating(true);
     setMessage('');
     try {
+      const p = profile!;
       const targets = await generateGoalsAI({
-        age: profile.age,
-        weightLbs: profile.weightLbs,
-        heightInches: profile.heightInches,
-        sex: profile.sex,
-        activityLevel: profile.activityLevel,
-        goal: profile.goal,
+        age: p.age,
+        weightLbs: p.weightLbs,
+        heightInches: p.heightInches,
+        sex: p.sex,
+        activityLevel: p.activityLevel,
+        goal: p.goal,
       });
-      const updated = { ...profile, dailyTargets: targets };
+      const updated: UserProfile = { ...p, dailyTargets: targets };
       setProfile(updated);
       saveProfile(updated);
       setManualMode(false);

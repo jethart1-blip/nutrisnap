@@ -84,7 +84,7 @@ export function Home() {
 
   return (
     <div className="min-h-screen bg-pageBg">
-      <div className="max-w-sm mx-auto px-4 pt-8 pb-28 space-y-6">
+      <div className="max-w-sm mx-auto px-4 pt-8 pb-28 space-y-6 page-fade-in">
 
         {/* Header */}
         <div>
@@ -94,7 +94,7 @@ export function Home() {
 
         {/* Calorie ring */}
         <div className="bg-surface rounded-2xl p-6 flex flex-col items-center">
-          <div className="relative w-40 h-40">
+          <div className="relative w-40 h-40 ring-pop">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 140 140">
               <circle cx="70" cy="70" r={RING_RADIUS} fill="none" stroke="var(--color-ring-track)" strokeWidth="10" />
               <circle
