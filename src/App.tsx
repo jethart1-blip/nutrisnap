@@ -3,6 +3,7 @@ import { getProfile } from './lib/storage'
 import Onboarding from './pages/Onboarding'
 import { Home } from './pages/Home'
 import { Welcome } from './pages/Welcome'
+import LogMeal from './pages/LogMeal'
 
 function ProtectedHome() {
   const profile = getProfile()
@@ -16,6 +17,7 @@ function App() {
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/" element={<ProtectedHome />} />
+      <Route path="/log" element={<LogMeal />} />
       <Route path="*" element={<Navigate to="/welcome" replace />} />
     </Routes>
   )
