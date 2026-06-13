@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { Home, Camera, Calendar, TrendingUp, Settings } from 'lucide-react';
+import { Home, Dumbbell, Apple, TrendingUp, Settings } from 'lucide-react';
 
 const navItems = [
   { to: '/', icon: Home, label: 'Home', end: true },
-  { to: '/log', icon: Camera, label: 'Log' },
-  { to: '/history', icon: Calendar, label: 'History' },
+  { to: '/train', icon: Dumbbell, label: 'Train' },
+  { to: '/nutrition', icon: Apple, label: 'Nutrition' },
   { to: '/progress', icon: TrendingUp, label: 'Progress' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ];
@@ -25,8 +25,8 @@ export function Layout({ children }: LayoutProps) {
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-colors ${
-                  isActive ? 'text-calorie' : 'text-textMuted'
+                `flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-colors ${
+                  isActive ? 'text-accent' : 'text-textMuted'
                 }`
               }
             >
