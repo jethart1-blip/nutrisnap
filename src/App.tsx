@@ -7,6 +7,8 @@ import NutritionLog from './pages/NutritionLog';
 import { NutritionHistory } from './pages/NutritionHistory';
 import { Progress } from './pages/Progress';
 import { Settings } from './pages/Settings';
+import { Train } from './pages/Train';
+import TodaysWorkout from './pages/TodaysWorkout';
 import { Layout } from './components/Layout';
 import { MuscleMap } from './components/MuscleMap';
 
@@ -69,8 +71,30 @@ function App() {
         element={
           <ProtectedRoute>
             <Layout>
-              <div className="p-8 pt-12 text-center">
-                <h1 className="text-2xl font-display font-bold text-textPrimary">Train (coming soon)</h1>
+              <Train />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Full-screen workout — no Layout */}
+      <Route
+        path="/train/workout"
+        element={
+          <ProtectedRoute>
+            <TodaysWorkout />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/train/program"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <div className="max-w-sm mx-auto px-4 pt-10 pb-28">
+                <h1 className="text-2xl font-display font-bold text-textPrimary mb-2">Program</h1>
+                <p className="text-sm text-textMuted">Program customization coming soon.</p>
               </div>
             </Layout>
           </ProtectedRoute>
