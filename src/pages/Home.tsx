@@ -98,8 +98,6 @@ export function Home() {
   const [allLogs, setAllLogs] = useState<FoodLogEntry[]>([]);
   const [latestWeight, setLatestWeight] = useState<WeightEntry | null>(null);
   const [showWeightReminder, setShowWeightReminder] = useState(false);
-  const [weightEntries, setWeightEntries] = useState<WeightEntry[]>([]);
-
   useEffect(() => {
     const p = getProfile();
     if (!p) {
@@ -111,7 +109,6 @@ export function Home() {
     setAllLogs(all);
     setLogs(all.filter((l) => isToday(l.date)));
     const allWeightEntries = getWeightEntries();
-    setWeightEntries(allWeightEntries);
     const sorted = [...allWeightEntries].sort((a, b) => b.date.localeCompare(a.date));
     setLatestWeight(sorted[0] ?? null);
     const dismissedToday = localStorage.getItem('nutrisnap_weight_reminder_dismissed') === todayDateString();
