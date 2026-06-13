@@ -1,32 +1,8 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
-import { getProfile } from './lib/storage'
-import Onboarding from './pages/Onboarding'
-import { Home } from './pages/Home'
-import { Welcome } from './pages/Welcome'
-import LogMeal from './pages/LogMeal'
-import { History } from './pages/History'
-import { Settings } from './pages/Settings'
-import { Progress } from './pages/Progress'
-import { Layout } from './components/Layout'
-
-function ProtectedHome() {
-  const profile = getProfile()
-  if (!profile) return <Navigate to="/welcome" replace />
-  return <Home />
-}
-
 function App() {
   return (
-    <Routes>
-      <Route path="/welcome" element={<Welcome />} />
-      <Route path="/onboarding" element={<Onboarding />} />
-      <Route path="/" element={<Layout><ProtectedHome /></Layout>} />
-      <Route path="/log" element={<LogMeal />} />
-      <Route path="/history" element={<Layout><History /></Layout>} />
-      <Route path="/progress" element={<Layout><Progress /></Layout>} />
-      <Route path="/settings" element={<Layout><Settings /></Layout>} />
-      <Route path="*" element={<Navigate to="/welcome" replace />} />
-    </Routes>
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-3xl font-display font-bold text-textPrimary">Health Zone</h1>
+    </div>
   )
 }
 

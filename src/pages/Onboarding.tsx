@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ActivityLevel, DailyTargets, NutritionGoal, Sex } from '../types'
+import type { ActivityLevel, DailyTargets, Sex } from '../types'
 import { calculateGoals, generateGoalsAI } from '../lib/calculateGoals'
 import { saveProfile } from '../lib/storage'
 
@@ -30,13 +30,6 @@ const activityOptions: { value: ActivityLevel; label: string; sub: string }[] = 
   { value: 'moderately_active', label: 'Moderately Active', sub: '3–5 days/week' },
   { value: 'very_active', label: 'Very Active', sub: '6–7 days/week' },
 ]
-
-function deriveGoalFromWeights(currentWeight: number, targetWeight: number): NutritionGoal {
-  const diff = targetWeight - currentWeight
-  if (diff <= -2) return 'lose_weight'
-  if (diff >= 2) return 'gain_weight'
-  return 'maintain'
-}
 
 function ProgressDots({ step }: { step: number }) {
   return (
@@ -130,7 +123,6 @@ export default function Onboarding() {
     if (!validateStep()) return
     if (step === 4) {
       setTargetsLoading(true)
-      const derivedGoal = deriveGoalFromWeights(Number(form.weightLbs), Number(targetWeight))
       const profile = {
         age: Number(form.age),
         weightLbs: Number(form.weightLbs),
@@ -138,7 +130,6 @@ export default function Onboarding() {
         heightInches: Number(form.heightInches),
         sex: form.sex,
         activityLevel: form.activityLevel,
-        goal: derivedGoal,
       }
       const result = await generateGoalsAI(profile)
       setAiTargets(result)
@@ -154,7 +145,6 @@ export default function Onboarding() {
   }
 
   function handleFinish() {
-    const derivedGoal = deriveGoalFromWeights(Number(form.weightLbs), Number(targetWeight))
     const profileBase = {
       name: form.name.trim(),
       age: Number(form.age),
@@ -162,12 +152,16 @@ export default function Onboarding() {
       weightLbs: Number(form.weightLbs),
       heightInches: Number(form.heightInches),
       activityLevel: form.activityLevel,
-      goal: derivedGoal,
       targetWeightLbs: Number(targetWeight),
+      fitnessGoal: 'general_fitness' as const,
+      equipment: ['barbell', 'dumbbell'] as const,
+      splitId: 'full_body' as const,
+      daysPerWeek: 3,
     }
     const dailyTargets = aiTargets ?? calculateGoals(profileBase)
     saveProfile({
       ...profileBase,
+      equipment: [...profileBase.equipment],
       dailyTargets,
       createdAt: new Date().toISOString(),
     })

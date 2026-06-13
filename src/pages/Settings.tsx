@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import type { UserProfile, Sex, ActivityLevel, NutritionGoal } from '../types';
+import type { UserProfile, Sex, ActivityLevel } from '../types';
 import { getProfile, saveProfile, resetAllData } from '../lib/storage';
 import { generateGoalsAI } from '../lib/calculateGoals';
 
@@ -9,12 +9,6 @@ const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   lightly_active: 'Lightly Active',
   moderately_active: 'Moderately Active',
   very_active: 'Very Active',
-};
-
-const GOAL_LABELS: Record<NutritionGoal, string> = {
-  lose_weight: 'Lose Weight',
-  maintain: 'Maintain',
-  gain_weight: 'Gain Weight',
 };
 
 export function Settings() {
@@ -31,7 +25,7 @@ export function Settings() {
     const updated = { ...profile!, [key]: value };
     setProfile(updated);
     saveProfile(updated);
-    if (['age', 'weightLbs', 'heightInches', 'activityLevel', 'goal'].includes(key as string)) {
+    if (['age', 'weightLbs', 'heightInches', 'activityLevel'].includes(key as string)) {
       setProfileChanged(true);
     }
   }
@@ -59,7 +53,6 @@ export function Settings() {
         heightInches: p.heightInches,
         sex: p.sex,
         activityLevel: p.activityLevel,
-        goal: p.goal,
       });
       const updated: UserProfile = { ...p, dailyTargets: targets };
       setProfile(updated);
@@ -150,23 +143,6 @@ export function Settings() {
                 <option key={key} value={key}>{label}</option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className={labelClass}>Goal</label>
-            <div className="flex gap-2 mt-1">
-              {(Object.keys(GOAL_LABELS) as NutritionGoal[]).map((g) => (
-                <button
-                  key={g}
-                  onClick={() => update('goal', g)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                    profile.goal === g ? 'bg-calorie text-white' : 'bg-surface2 text-textMuted'
-                  }`}
-                >
-                  {GOAL_LABELS[g]}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 

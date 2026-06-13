@@ -14,6 +14,8 @@ module.exports = {
         surface2: 'var(--color-surface2)',
         textPrimary: 'var(--color-text-primary)',
         textMuted: 'var(--color-text-muted)',
+        accent: 'var(--color-accent)',
+        accentGreen: 'var(--color-accent-green)',
         calorie: 'var(--color-calorie)',
         protein: 'var(--color-protein)',
         carbs: 'var(--color-carbs)',
