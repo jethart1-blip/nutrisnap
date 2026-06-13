@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import type { ActivityLevel, NutritionGoal, Sex } from '../types'
-import { calculateGoals } from '../lib/calculateGoals'
+import type { ActivityLevel, DailyTargets, NutritionGoal, Sex } from '../types'
+import { calculateGoals, generateGoalsAI } from '../lib/calculateGoals'
 import { saveProfile } from '../lib/storage'
 
 const TOTAL_STEPS = 6
@@ -71,6 +71,8 @@ export default function Onboarding() {
   const [step, setStep] = useState(1)
   const [form, setForm] = useState<FormData>(defaultForm)
   const [errors, setErrors] = useState<Partial<Record<keyof FormData, string>>>({})
+  const [targetsLoading, setTargetsLoading] = useState(false)
+  const [aiTargets, setAiTargets] = useState<DailyTargets | null>(null)
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -116,9 +118,25 @@ export default function Onboarding() {
     return true
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (!validateStep()) return
-    setStep((s) => s + 1)
+    if (step === 5) {
+      setTargetsLoading(true)
+      const profile = {
+        age: Number(form.age),
+        weightLbs: Number(form.weightLbs),
+        heightInches: Number(form.heightInches),
+        sex: form.sex,
+        activityLevel: form.activityLevel,
+        goal: form.goal,
+      }
+      const result = await generateGoalsAI(profile)
+      setAiTargets(result)
+      setTargetsLoading(false)
+      setStep(6)
+    } else {
+      setStep((s) => s + 1)
+    }
   }
 
   function handleBack() {
@@ -135,7 +153,7 @@ export default function Onboarding() {
       activityLevel: form.activityLevel,
       goal: form.goal,
     }
-    const dailyTargets = calculateGoals(profileBase)
+    const dailyTargets = aiTargets ?? calculateGoals(profileBase)
     saveProfile({
       ...profileBase,
       dailyTargets,
@@ -144,18 +162,7 @@ export default function Onboarding() {
     navigate('/')
   }
 
-  const targets =
-    step === 6
-      ? calculateGoals({
-          name: form.name.trim(),
-          age: Number(form.age),
-          sex: form.sex,
-          weightLbs: Number(form.weightLbs),
-          heightInches: Number(form.heightInches),
-          activityLevel: form.activityLevel,
-          goal: form.goal,
-        })
-      : null
+  const targets = step === 6 ? aiTargets : null
 
   return (
     <div className="min-h-screen bg-pageBg flex flex-col items-center justify-center px-4 py-10">
@@ -448,14 +455,21 @@ export default function Onboarding() {
           {step < 6 ? (
             <button
               onClick={handleNext}
-              disabled={!canProceed()}
+              disabled={!canProceed() || targetsLoading}
               className={`flex-1 rounded-xl py-3 font-body font-semibold text-sm transition-all ${
-                canProceed()
+                canProceed() && !targetsLoading
                   ? 'bg-calorie text-white hover:opacity-90 active:opacity-80'
                   : 'bg-surface2 text-textMuted cursor-not-allowed'
               }`}
             >
-              Next
+              {targetsLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-textMuted border-t-transparent" />
+                  Calculating your targets...
+                </span>
+              ) : (
+                'Next'
+              )}
             </button>
           ) : (
             <button

@@ -6,22 +6,15 @@ export interface AnalyzeFoodResult {
 }
 
 export async function analyzeFood(photoDataUrl?: string, description?: string): Promise<AnalyzeFoodResult> {
-  await new Promise((resolve) => setTimeout(resolve, 1500));
+  const res = await fetch('/api/analyze-food', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ photoDataUrl, description }),
+  });
 
-  const baseName = description?.trim() || (photoDataUrl ? 'Mystery Meal' : 'Unknown Food');
+  if (!res.ok) {
+    throw new Error('Failed to analyze food');
+  }
 
-  return {
-    name: baseName.length > 40 ? baseName.slice(0, 40) : baseName,
-    nutrition: {
-      calories: 450,
-      protein: 28,
-      carbs: 42,
-      fat: 18,
-      fiber: 4,
-      sugar: 8,
-      sodium: 620,
-      saturatedFat: 5,
-      cholesterol: 65,
-    },
-  };
+  return res.json();
 }

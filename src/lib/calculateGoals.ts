@@ -1,5 +1,7 @@
 import type { UserProfile, DailyTargets } from '../types';
 
+type GoalProfile = Pick<UserProfile, 'age' | 'weightLbs' | 'heightInches' | 'sex' | 'activityLevel' | 'goal'>;
+
 export function calculateGoals(profile: Omit<UserProfile, 'dailyTargets' | 'createdAt'>): DailyTargets {
   // Mifflin-St Jeor BMR formula
   const weightKg = profile.weightLbs * 0.453592;
@@ -30,4 +32,18 @@ export function calculateGoals(profile: Omit<UserProfile, 'dailyTargets' | 'crea
   const fat = Math.round((calories * 0.3) / 9);
 
   return { calories, protein, carbs, fat, source: 'ai_generated' };
+}
+
+export async function generateGoalsAI(profile: GoalProfile): Promise<DailyTargets> {
+  try {
+    const res = await fetch('/api/generate-goals', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(profile),
+    });
+    if (!res.ok) throw new Error('API error');
+    return await res.json();
+  } catch {
+    return calculateGoals(profile as Omit<UserProfile, 'dailyTargets' | 'createdAt'>);
+  }
 }
