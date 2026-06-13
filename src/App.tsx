@@ -8,6 +8,7 @@ import { NutritionHistory } from './pages/NutritionHistory';
 import { Progress } from './pages/Progress';
 import { Settings } from './pages/Settings';
 import { Layout } from './components/Layout';
+import { MuscleMap } from './components/MuscleMap';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const profile = getProfile();
@@ -97,6 +98,27 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* TEMPORARY TEST ROUTE */}
+      <Route path="/test" element={
+        <div className="min-h-screen bg-pageBg flex flex-col items-center justify-center gap-8 p-8">
+          <h1 className="font-display font-bold text-2xl text-textPrimary">Muscle Map Test</h1>
+          <div className="flex gap-8">
+            <div className="text-center">
+              <p className="text-xs text-textMuted mb-2">Chest + Triceps + Shoulders</p>
+              <MuscleMap primary={['chest']} secondary={['triceps', 'shoulders']} size={160} />
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-textMuted mb-2">Back + Biceps</p>
+              <MuscleMap primary={['back']} secondary={['biceps', 'forearms']} size={160} />
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-textMuted mb-2">Quads + Glutes</p>
+              <MuscleMap primary={['quads']} secondary={['glutes', 'hamstrings']} size={160} />
+            </div>
+          </div>
+        </div>
+      } />
 
       <Route
         path="*"
