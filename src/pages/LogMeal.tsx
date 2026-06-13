@@ -69,17 +69,12 @@ export default function LogMeal() {
   // ── LOADING ──────────────────────────────────────────────────────────────
   if (pageState === 'loading') {
     return (
-      <div className="min-h-screen bg-pageBg flex flex-col items-center justify-center gap-5 px-4">
-        <div className="relative w-16 h-16">
-          <svg className="w-full h-full animate-spin" viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="26" fill="none" stroke="var(--color-ring-track)" strokeWidth="6" />
-            <circle
-              cx="32" cy="32" r="26" fill="none" stroke="var(--color-calorie)" strokeWidth="6"
-              strokeLinecap="round" strokeDasharray="163" strokeDashoffset="120"
-            />
-          </svg>
+      <div className="min-h-screen bg-pageBg flex flex-col items-center justify-center">
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8">
+          <div className="text-5xl animate-bounce">🍽️</div>
+          <p className="font-display font-bold text-lg text-textPrimary">Analyzing your meal...</p>
+          <p className="text-sm text-textMuted">Our AI is identifying the food and estimating nutrition</p>
         </div>
-        <p className="text-base font-display font-semibold text-textPrimary">Analyzing your meal…</p>
       </div>
     );
   }

@@ -30,6 +30,28 @@ export function MealReviewForm({
   const [category, setCategory] = useState<MealCategory>(initialCategory);
   const [nutrition, setNutrition] = useState<NutritionInfo>(initialNutrition);
   const [showMore, setShowMore] = useState(false);
+  const [portionMultiplier, setPortionMultiplier] = useState(1);
+
+  function scaleNutrition(base: NutritionInfo, multiplier: number): NutritionInfo {
+    const scaled: NutritionInfo = {
+      calories: Math.round(base.calories * multiplier),
+      protein: Math.round(base.protein * multiplier),
+      carbs: Math.round(base.carbs * multiplier),
+      fat: Math.round(base.fat * multiplier),
+    };
+    if (base.fiber !== undefined) scaled.fiber = Math.round(base.fiber * multiplier);
+    if (base.sugar !== undefined) scaled.sugar = Math.round(base.sugar * multiplier);
+    if (base.sodium !== undefined) scaled.sodium = Math.round(base.sodium * multiplier);
+    if (base.saturatedFat !== undefined) scaled.saturatedFat = Math.round(base.saturatedFat * multiplier);
+    if (base.cholesterol !== undefined) scaled.cholesterol = Math.round(base.cholesterol * multiplier);
+    return scaled;
+  }
+
+  function handlePortionChange(newMultiplier: number) {
+    const ratio = newMultiplier / portionMultiplier;
+    setNutrition((prev) => scaleNutrition(prev, ratio));
+    setPortionMultiplier(newMultiplier);
+  }
 
   function updateField(field: keyof NutritionInfo, value: string) {
     const num = value === '' ? 0 : Number(value);
@@ -89,6 +111,23 @@ export function MealReviewForm({
 
       {/* Nutrition */}
       <div className="bg-surface rounded-2xl p-4 space-y-4">
+        <div>
+          <p className="text-xs font-semibold text-textMuted uppercase tracking-wide mb-2">Portion Size</p>
+          <div className="flex gap-2">
+            {[0.5, 1, 1.5, 2].map((mult) => (
+              <button
+                key={mult}
+                onClick={() => handlePortionChange(mult)}
+                className={`flex-1 py-2 rounded-xl text-sm font-semibold transition-colors ${
+                  portionMultiplier === mult ? 'bg-calorie text-white' : 'bg-surface2 text-textMuted'
+                }`}
+              >
+                {mult}x
+              </button>
+            ))}
+          </div>
+        </div>
+
         <p className="text-xs font-semibold text-textMuted uppercase tracking-wide">Nutrition</p>
 
         <div className="grid grid-cols-2 gap-3">
