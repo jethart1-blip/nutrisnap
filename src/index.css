@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-page-bg: #FAF7F2;
+  --color-surface: #FFFFFF;
+  --color-surface2: #F0EBE3;
+  --color-text-primary: #2D2A26;
+  --color-text-muted: #8B8378;
+  --color-calorie: #FF8C5A;
+  --color-protein: #5B9BD5;
+  --color-carbs: #F2C14E;
+  --color-fat: #B68FCE;
+  --color-success: #6FCF97;
+  --color-danger: #E5604D;
+  --color-ring-track: #EDE7DD;
+}
+
+@layer base {
+  body {
+    @apply bg-pageBg text-textPrimary font-body;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3 {
+    @apply font-display;
+  }
+}
