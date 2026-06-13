@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { UserProfile, Sex, ActivityLevel, EquipmentType, FitnessGoal, SplitId } from '../types';
-import { getProfile, saveProfile, resetAllData } from '../lib/storage';
+import { getProfile, saveProfile, saveProgram, resetAllData } from '../lib/storage';
 import { generateGoalsAI } from '../lib/calculateGoals';
+import { generateProgram } from '../lib/generateProgram';
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
   sedentary: 'Sedentary',
@@ -311,7 +312,13 @@ export function Settings() {
           <div className="bg-accent/10 border border-accent/30 rounded-2xl p-4 flex items-center justify-between gap-3">
             <p className="text-sm text-textPrimary">Your fitness settings changed — regenerate your program?</p>
             <button
-              onClick={() => setFitnessChanged(false)}
+              onClick={() => {
+                const newProgram = generateProgram(profile!);
+                saveProgram(newProgram);
+                setFitnessChanged(false);
+                setMessage('Workout program regenerated!');
+                setTimeout(() => setMessage(''), 3000);
+              }}
               className="shrink-0 bg-accent text-white text-xs font-semibold rounded-xl px-3 py-2 active:scale-95 transition-transform"
             >
               Regenerate

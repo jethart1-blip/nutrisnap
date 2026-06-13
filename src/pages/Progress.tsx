@@ -2,6 +2,15 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { WeightEntry, UserProfile } from '../types';
 import { getProfile, getWeightEntries, addOrUpdateWeightEntry } from '../lib/storage';
+import { getAllTimePR } from '../lib/getPRs';
+
+const MAJOR_LIFTS: { label: string; exerciseId: string }[] = [
+  { label: 'Squat', exerciseId: 'barbell_back_squat' },
+  { label: 'Bench', exerciseId: 'barbell_bench_press' },
+  { label: 'Deadlift', exerciseId: 'barbell_deadlift' },
+  { label: 'OHP', exerciseId: 'barbell_overhead_press' },
+  { label: 'Row', exerciseId: 'barbell_row' },
+];
 
 function todayDateString(): string {
   const d = new Date();
@@ -280,6 +289,26 @@ export function Progress() {
               <p className="text-sm text-textMuted">Log your weight daily to see your trend over time.</p>
             </div>
           )}
+
+          {/* Strength PRs */}
+          <div className="bg-surface rounded-2xl p-5 space-y-3">
+            <p className="text-xs font-semibold text-textMuted uppercase tracking-wide">Strength PRs</p>
+            <div className="space-y-2">
+              {MAJOR_LIFTS.map(({ label, exerciseId }) => {
+                const pr = getAllTimePR(exerciseId);
+                return (
+                  <div key={exerciseId} className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-textPrimary">{label}</span>
+                    {pr !== null ? (
+                      <span className="text-sm font-display font-bold text-accent">{pr} lbs</span>
+                    ) : (
+                      <span className="text-xs text-textMuted">No data yet</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 

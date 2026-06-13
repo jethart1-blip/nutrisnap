@@ -180,7 +180,7 @@ export function MealReviewForm({
         <div className="max-w-sm mx-auto">
           <button
             onClick={() => onSave({ name, category, nutrition })}
-            className="w-full bg-calorie text-white font-display font-bold rounded-2xl py-4 text-base active:scale-95 transition-transform shadow-lg shadow-calorie/20"
+            className="w-full bg-accent text-white font-display font-bold rounded-2xl py-4 text-base active:scale-95 transition-transform shadow-lg shadow-accent/20"
           >
             {saveLabel}
           </button>
