@@ -3,6 +3,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 interface RequestBody {
   age: number;
   weightLbs: number;
+  targetWeightLbs: number;
   heightInches: number;
   sex: string;
   activityLevel: string;
@@ -21,15 +22,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const profile = req.body as RequestBody;
 
+  const weightDiff = profile.targetWeightLbs - profile.weightLbs;
+  const diffDescription = weightDiff < 0
+    ? `wants to LOSE ${Math.abs(weightDiff)} lbs (from ${profile.weightLbs} to ${profile.targetWeightLbs} lbs)`
+    : weightDiff > 0
+    ? `wants to GAIN ${weightDiff} lbs (from ${profile.weightLbs} to ${profile.targetWeightLbs} lbs)`
+    : `wants to MAINTAIN their current weight of ${profile.weightLbs} lbs`;
+
   const prompt = `Given this user profile, calculate appropriate daily nutrition targets:
 - Age: ${profile.age}
-- Weight: ${profile.weightLbs} lbs
+- Current weight: ${profile.weightLbs} lbs
+- Target weight: ${profile.targetWeightLbs} lbs
 - Height: ${profile.heightInches} inches
 - Sex: ${profile.sex}
 - Activity level: ${profile.activityLevel}
-- Goal: ${profile.goal}
+- This user ${diffDescription}.
 
-Use standard TDEE calculation (Mifflin-St Jeor) adjusted for the goal (deficit for lose_weight, surplus for gain_weight, maintenance otherwise), then split macros appropriately for the goal (e.g., higher protein for weight loss/muscle retention).
+Use standard TDEE calculation (Mifflin-St Jeor) as a baseline. Then adjust calories based on the SIZE of the gap between current and target weight:
+- A larger gap (more than 20 lbs to lose/gain) suggests a more significant but still safe deficit/surplus (e.g., ~500-750 cal/day adjustment)
+- A smaller gap (5-20 lbs) suggests a moderate adjustment (~250-500 cal/day)
+- A very small gap (under 5 lbs) or maintenance suggests a small or no adjustment (~0-250 cal/day)
+
+Never recommend below 1200 calories/day for women or 1500 calories/day for men regardless of goal.
+
+Split macros appropriately: higher protein (0.8-1g per lb of target bodyweight) when losing weight to preserve muscle, moderate-high protein when gaining for muscle support, balanced macros when maintaining.
 
 Respond with ONLY a JSON object (no markdown, no explanation) in this exact shape:
 {

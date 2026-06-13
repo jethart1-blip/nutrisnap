@@ -4,7 +4,7 @@ import type { ActivityLevel, DailyTargets, NutritionGoal, Sex } from '../types'
 import { calculateGoals, generateGoalsAI } from '../lib/calculateGoals'
 import { saveProfile } from '../lib/storage'
 
-const TOTAL_STEPS = 6
+const TOTAL_STEPS = 5
 
 interface FormData {
   name: string
@@ -13,7 +13,6 @@ interface FormData {
   weightLbs: string
   heightInches: string
   activityLevel: ActivityLevel
-  goal: NutritionGoal
 }
 
 const defaultForm: FormData = {
@@ -23,7 +22,6 @@ const defaultForm: FormData = {
   weightLbs: '',
   heightInches: '',
   activityLevel: 'moderately_active',
-  goal: 'maintain',
 }
 
 const activityOptions: { value: ActivityLevel; label: string; sub: string }[] = [
@@ -33,11 +31,12 @@ const activityOptions: { value: ActivityLevel; label: string; sub: string }[] = 
   { value: 'very_active', label: 'Very Active', sub: '6–7 days/week' },
 ]
 
-const goalOptions: { value: NutritionGoal; label: string; icon: string }[] = [
-  { value: 'lose_weight', label: 'Lose Weight', icon: '↓' },
-  { value: 'maintain', label: 'Maintain', icon: '→' },
-  { value: 'gain_weight', label: 'Gain Weight', icon: '↑' },
-]
+function deriveGoalFromWeights(currentWeight: number, targetWeight: number): NutritionGoal {
+  const diff = targetWeight - currentWeight
+  if (diff <= -2) return 'lose_weight'
+  if (diff >= 2) return 'gain_weight'
+  return 'maintain'
+}
 
 function ProgressDots({ step }: { step: number }) {
   return (
@@ -74,6 +73,7 @@ export default function Onboarding() {
   const [targetsLoading, setTargetsLoading] = useState(false)
   const [aiTargets, setAiTargets] = useState<DailyTargets | null>(null)
   const [targetWeight, setTargetWeight] = useState('')
+  const [targetWeightError, setTargetWeightError] = useState<string | undefined>(undefined)
 
   function set<K extends keyof FormData>(key: K, value: FormData[K]) {
     setForm((f) => ({ ...f, [key]: value }))
@@ -82,6 +82,7 @@ export default function Onboarding() {
 
   function validateStep(): boolean {
     const newErrors: Partial<Record<keyof FormData, string>> = {}
+    let twError: string | undefined = undefined
     if (step === 1) {
       if (!form.name.trim()) newErrors.name = 'Name is required'
     }
@@ -93,13 +94,17 @@ export default function Onboarding() {
     if (step === 3) {
       const w = Number(form.weightLbs)
       const h = Number(form.heightInches)
+      const tw = Number(targetWeight)
       if (!form.weightLbs || isNaN(w) || w < 50 || w > 600)
         newErrors.weightLbs = 'Weight must be between 50 and 600 lbs'
       if (!form.heightInches || isNaN(h) || h < 36 || h > 96)
         newErrors.heightInches = 'Height must be between 36 and 96 inches'
+      if (!targetWeight || isNaN(tw) || tw < 50 || tw > 600)
+        twError = 'Target weight must be between 50 and 600 lbs'
     }
     setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
+    setTargetWeightError(twError)
+    return Object.keys(newErrors).length === 0 && twError === undefined
   }
 
   function canProceed(): boolean {
@@ -111,9 +116,11 @@ export default function Onboarding() {
     if (step === 3) {
       const w = Number(form.weightLbs)
       const h = Number(form.heightInches)
+      const tw = Number(targetWeight)
       return (
         !!form.weightLbs && !isNaN(w) && w >= 50 && w <= 600 &&
-        !!form.heightInches && !isNaN(h) && h >= 36 && h <= 96
+        !!form.heightInches && !isNaN(h) && h >= 36 && h <= 96 &&
+        !!targetWeight && !isNaN(tw) && tw >= 50 && tw <= 600
       )
     }
     return true
@@ -121,20 +128,22 @@ export default function Onboarding() {
 
   async function handleNext() {
     if (!validateStep()) return
-    if (step === 5) {
+    if (step === 4) {
       setTargetsLoading(true)
+      const derivedGoal = deriveGoalFromWeights(Number(form.weightLbs), Number(targetWeight))
       const profile = {
         age: Number(form.age),
         weightLbs: Number(form.weightLbs),
+        targetWeightLbs: Number(targetWeight),
         heightInches: Number(form.heightInches),
         sex: form.sex,
         activityLevel: form.activityLevel,
-        goal: form.goal,
+        goal: derivedGoal,
       }
       const result = await generateGoalsAI(profile)
       setAiTargets(result)
       setTargetsLoading(false)
-      setStep(6)
+      setStep(5)
     } else {
       setStep((s) => s + 1)
     }
@@ -145,6 +154,7 @@ export default function Onboarding() {
   }
 
   function handleFinish() {
+    const derivedGoal = deriveGoalFromWeights(Number(form.weightLbs), Number(targetWeight))
     const profileBase = {
       name: form.name.trim(),
       age: Number(form.age),
@@ -152,8 +162,8 @@ export default function Onboarding() {
       weightLbs: Number(form.weightLbs),
       heightInches: Number(form.heightInches),
       activityLevel: form.activityLevel,
-      goal: form.goal,
-      targetWeightLbs: targetWeight.trim() === '' ? undefined : Number(targetWeight),
+      goal: derivedGoal,
+      targetWeightLbs: Number(targetWeight),
     }
     const dailyTargets = aiTargets ?? calculateGoals(profileBase)
     saveProfile({
@@ -164,14 +174,14 @@ export default function Onboarding() {
     navigate('/')
   }
 
-  const targets = step === 6 ? aiTargets : null
+  const targets = step === 5 ? aiTargets : null
 
   return (
     <div className="min-h-screen bg-pageBg flex flex-col items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="mb-2">
-          {step < 6 ? (
+          {step < 5 ? (
             <>
               <StepLabel step={step} />
               <ProgressDots step={step} />
@@ -309,15 +319,25 @@ export default function Onboarding() {
               )}
 
               <label className="block text-sm font-body font-medium text-textPrimary mb-1 mt-4">
-                Target Weight (lbs, optional)
+                Target Weight (lbs)
               </label>
               <input
                 type="number"
                 value={targetWeight}
-                onChange={(e) => setTargetWeight(e.target.value)}
-                placeholder="e.g. 170 (optional)"
-                className="w-full rounded-xl border-2 bg-pageBg px-4 py-3 font-body text-textPrimary placeholder:text-textMuted focus:outline-none transition-colors border-surface2 focus:border-calorie"
+                onChange={(e) => {
+                  setTargetWeight(e.target.value)
+                  setTargetWeightError(undefined)
+                }}
+                placeholder="e.g. 155"
+                min={50}
+                max={600}
+                className={`w-full rounded-xl border-2 bg-pageBg px-4 py-3 font-body text-textPrimary placeholder:text-textMuted focus:outline-none transition-colors ${
+                  targetWeightError ? 'border-danger' : 'border-surface2 focus:border-calorie'
+                }`}
               />
+              {targetWeightError && (
+                <p className="mt-1 text-xs font-body text-danger">{targetWeightError}</p>
+              )}
             </div>
           )}
 
@@ -355,48 +375,8 @@ export default function Onboarding() {
             </div>
           )}
 
-          {/* STEP 5 — Goal */}
-          {step === 5 && (
-            <div>
-              <h3 className="text-xl font-display font-bold text-textPrimary mb-1">
-                What's your goal?
-              </h3>
-              <p className="text-sm font-body text-textMuted mb-5">
-                This adjusts your daily calorie target.
-              </p>
-              <div className="flex flex-col gap-3">
-                {goalOptions.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => set('goal', opt.value)}
-                    className={`rounded-2xl border-2 px-4 py-4 text-left flex items-center gap-4 transition-all ${
-                      form.goal === opt.value
-                        ? 'border-calorie bg-calorie/10'
-                        : 'border-surface2 bg-pageBg hover:border-calorie/40'
-                    }`}
-                  >
-                    <span
-                      className={`text-2xl font-bold w-8 text-center ${
-                        form.goal === opt.value ? 'text-calorie' : 'text-textMuted'
-                      }`}
-                    >
-                      {opt.icon}
-                    </span>
-                    <span
-                      className={`font-body font-semibold text-sm ${
-                        form.goal === opt.value ? 'text-calorie' : 'text-textPrimary'
-                      }`}
-                    >
-                      {opt.label}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 6 — Targets Preview */}
-          {step === 6 && targets && (
+          {/* STEP 5 — Targets Preview */}
+          {step === 5 && targets && (
             <div>
               <p className="text-sm font-body text-textMuted text-center mb-6">
                 Based on your profile, here are your recommended daily targets.
@@ -465,7 +445,7 @@ export default function Onboarding() {
             </button>
           )}
 
-          {step < 6 ? (
+          {step < 5 ? (
             <button
               onClick={handleNext}
               disabled={!canProceed() || targetsLoading}

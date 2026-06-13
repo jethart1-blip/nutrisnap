@@ -55,6 +55,7 @@ export function Settings() {
       const targets = await generateGoalsAI({
         age: p.age,
         weightLbs: p.weightLbs,
+        targetWeightLbs: p.targetWeightLbs ?? p.weightLbs,
         heightInches: p.heightInches,
         sex: p.sex,
         activityLevel: p.activityLevel,
@@ -132,13 +133,13 @@ export function Settings() {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-textMuted">Target Weight (lbs, optional)</label>
+            <label className="text-xs font-semibold text-textMuted">Target Weight (lbs)</label>
             <input
               type="number"
               value={profile.targetWeightLbs ?? ''}
-              onChange={(e) => update('targetWeightLbs', e.target.value === '' ? undefined : Number(e.target.value))}
+              onChange={(e) => update('targetWeightLbs', e.target.value === '' ? profile.weightLbs : Number(e.target.value))}
               className="w-full mt-1 rounded-xl border-2 border-surface2 px-3 py-2 text-sm text-textPrimary bg-surface focus:border-calorie outline-none"
-              placeholder="e.g. 170"
+              placeholder="e.g. 155"
             />
           </div>
 

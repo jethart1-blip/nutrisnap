@@ -1,6 +1,6 @@
 import type { UserProfile, DailyTargets } from '../types';
 
-type GoalProfile = Pick<UserProfile, 'age' | 'weightLbs' | 'heightInches' | 'sex' | 'activityLevel' | 'goal'>;
+type GoalProfile = Pick<UserProfile, 'age' | 'weightLbs' | 'targetWeightLbs' | 'heightInches' | 'sex' | 'activityLevel' | 'goal'>;
 
 export function calculateGoals(profile: Omit<UserProfile, 'dailyTargets' | 'createdAt'>): DailyTargets {
   // Mifflin-St Jeor BMR formula
@@ -21,9 +21,19 @@ export function calculateGoals(profile: Omit<UserProfile, 'dailyTargets' | 'crea
   };
   const tdee = bmr * activityMultipliers[profile.activityLevel];
 
-  let calories = tdee;
-  if (profile.goal === 'lose_weight') calories = tdee - 500;
-  if (profile.goal === 'gain_weight') calories = tdee + 300;
+  const weightDiffLbs = profile.targetWeightLbs - profile.weightLbs;
+  let calorieAdjustment = 0;
+  if (weightDiffLbs <= -20) calorieAdjustment = -600;
+  else if (weightDiffLbs <= -5) calorieAdjustment = -400;
+  else if (weightDiffLbs < -2) calorieAdjustment = -200;
+  else if (weightDiffLbs >= 20) calorieAdjustment = 400;
+  else if (weightDiffLbs >= 5) calorieAdjustment = 300;
+  else if (weightDiffLbs > 2) calorieAdjustment = 150;
+
+  let calories = tdee + calorieAdjustment;
+
+  const minCalories = profile.sex === 'female' ? 1200 : 1500;
+  calories = Math.max(calories, minCalories);
   calories = Math.round(calories / 10) * 10;
 
   // Macro split: protein 30%, carbs 40%, fat 30% (4/4/9 cal per gram)
