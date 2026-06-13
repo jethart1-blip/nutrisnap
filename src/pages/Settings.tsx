@@ -23,6 +23,7 @@ export function Settings() {
   const [regenerating, setRegenerating] = useState(false);
   const [message, setMessage] = useState('');
   const [manualMode, setManualMode] = useState(profile?.dailyTargets.source === 'manual');
+  const [profileChanged, setProfileChanged] = useState(false);
 
   if (!profile) return null;
 
@@ -30,6 +31,9 @@ export function Settings() {
     const updated = { ...profile!, [key]: value };
     setProfile(updated);
     saveProfile(updated);
+    if (['age', 'weightLbs', 'heightInches', 'activityLevel', 'goal'].includes(key as string)) {
+      setProfileChanged(true);
+    }
   }
 
   function updateTarget(key: 'calories' | 'protein' | 'carbs' | 'fat', value: string) {
@@ -60,6 +64,7 @@ export function Settings() {
       setProfile(updated);
       saveProfile(updated);
       setManualMode(false);
+      setProfileChanged(false);
       setMessage('Goals updated based on your profile!');
       setTimeout(() => setMessage(''), 3000);
     } catch {
@@ -152,6 +157,20 @@ export function Settings() {
             </div>
           </div>
         </div>
+
+        {/* Profile changed banner */}
+        {profileChanged && (
+          <div className="bg-calorie/10 border border-calorie/30 rounded-2xl p-4 flex items-center justify-between gap-3">
+            <p className="text-sm text-textPrimary">Your profile changed. Update your daily targets?</p>
+            <button
+              onClick={handleRegenerate}
+              disabled={regenerating}
+              className="shrink-0 bg-calorie text-white text-xs font-semibold rounded-xl px-3 py-2 active:scale-95 transition-transform disabled:opacity-50"
+            >
+              {regenerating ? '...' : 'Update'}
+            </button>
+          </div>
+        )}
 
         {/* Daily Targets */}
         <div className="bg-surface rounded-2xl p-5 space-y-4">
