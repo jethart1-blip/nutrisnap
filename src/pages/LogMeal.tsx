@@ -5,11 +5,26 @@ import { analyzeFood } from '../lib/analyzeFood';
 import type { AnalyzeFoodResult } from '../lib/analyzeFood';
 import { compressImage } from '../lib/compressImage';
 import { getCurrentMealCategory } from '../lib/mealCategory';
-import { addFoodLog } from '../lib/storage';
+import { addFoodLog, getFoodLogs } from '../lib/storage';
 import { MealReviewForm } from '../components/MealReviewForm';
 import type { FoodLogEntry } from '../types';
 
 type PageState = 'input' | 'loading' | 'review';
+
+function getRecentMeals(limit = 8): FoodLogEntry[] {
+  const logs = getFoodLogs();
+  const sorted = [...logs].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const seen = new Set<string>();
+  const result: FoodLogEntry[] = [];
+  for (const log of sorted) {
+    const key = log.name.toLowerCase().trim();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(log);
+    if (result.length >= limit) break;
+  }
+  return result;
+}
 
 export default function LogMeal() {
   const navigate = useNavigate();
@@ -19,6 +34,7 @@ export default function LogMeal() {
   const [description, setDescription] = useState('');
   const [pageState, setPageState] = useState<PageState>('input');
   const [aiResult, setAiResult] = useState<AnalyzeFoodResult | null>(null);
+  const [recentMeals] = useState(() => getRecentMeals());
 
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -31,6 +47,13 @@ export default function LogMeal() {
     }
     e.target.value = '';
   };
+
+  function selectRecentMeal(meal: FoodLogEntry) {
+    setAiResult({ name: meal.name, nutrition: meal.confirmed });
+    setPhotoDataUrl(meal.photoDataUrl ?? '');
+    setDescription('');
+    setPageState('review');
+  }
 
   const handleAnalyze = async () => {
     setPageState('loading');
@@ -119,6 +142,29 @@ export default function LogMeal() {
           </button>
           <h1 className="text-2xl font-display font-bold text-textPrimary">Log a Meal</h1>
         </div>
+
+        {recentMeals.length > 0 && (
+          <div>
+            <p className="text-xs font-semibold text-textMuted uppercase tracking-wide mb-2">Recent Meals</p>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+              {recentMeals.map((meal) => (
+                <button
+                  key={meal.id}
+                  onClick={() => selectRecentMeal(meal)}
+                  className="shrink-0 w-24 text-left active:scale-95 transition-transform"
+                >
+                  {meal.photoDataUrl ? (
+                    <img src={meal.photoDataUrl} alt={meal.name} className="w-24 h-24 rounded-2xl object-cover" />
+                  ) : (
+                    <div className="w-24 h-24 rounded-2xl bg-surface2 flex items-center justify-center text-2xl">🍽️</div>
+                  )}
+                  <p className="text-xs font-medium text-textPrimary mt-1.5 truncate">{meal.name}</p>
+                  <p className="text-xs text-textMuted">{meal.confirmed.calories} cal</p>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="bg-surface rounded-2xl p-4 space-y-3">
           <p className="text-xs font-semibold text-textMuted uppercase tracking-wide">Photo</p>
