@@ -40,6 +40,7 @@ export interface UserProfile {
   goal: NutritionGoal;
   dailyTargets: DailyTargets;
   createdAt: string;
+  targetWeightLbs?: number;
 }
 
 export interface WeightEntry {

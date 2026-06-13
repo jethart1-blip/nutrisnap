@@ -7,6 +7,9 @@ import { getProfile, getFoodLogs, getWeightEntries } from '../lib/storage';
 const RING_RADIUS = 60;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
+const MACRO_RING_RADIUS = 28;
+const MACRO_RING_CIRC = 2 * Math.PI * MACRO_RING_RADIUS;
+
 const MEAL_CATEGORY_LABELS: Record<MealCategory, string> = {
   breakfast: 'Breakfast',
   lunch: 'Lunch',
@@ -178,22 +181,30 @@ export function Home() {
           </div>
         </div>
 
-        {/* Macro bars */}
-        <div className="bg-surface rounded-2xl p-5 space-y-4">
-          {macros.map((m) => {
-            const progress = Math.min(m.value / m.target, 1);
-            return (
-              <div key={m.label}>
-                <div className="flex justify-between text-sm mb-1.5">
-                  <span className={`font-semibold ${m.text}`}>{m.label}</span>
-                  <span className="text-textMuted">{m.value}g / {m.target}g</span>
+        {/* Macro rings */}
+        <div className="bg-surface rounded-2xl p-5">
+          <div className="grid grid-cols-3 gap-3">
+            {macros.map((m) => {
+              const progress = Math.min(m.value / m.target, 1);
+              const ringColorVar = m.label === 'Protein' ? 'var(--color-protein)' : m.label === 'Carbs' ? 'var(--color-carbs)' : 'var(--color-fat)';
+              return (
+                <div key={m.label} className="flex flex-col items-center gap-2">
+                  <div className="relative w-20 h-20">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 70 70">
+                      <circle cx="35" cy="35" r={MACRO_RING_RADIUS} fill="none" stroke="var(--color-ring-track)" strokeWidth="6" />
+                      <circle cx="35" cy="35" r={MACRO_RING_RADIUS} fill="none" stroke={ringColorVar} strokeWidth="6" strokeLinecap="round"
+                        strokeDasharray={MACRO_RING_CIRC} strokeDashoffset={MACRO_RING_CIRC * (1 - progress)} style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-sm font-display font-bold text-textPrimary">{m.value}g</span>
+                    </div>
+                  </div>
+                  <p className={`text-xs font-semibold ${m.text}`}>{m.label}</p>
+                  <p className="text-[10px] text-textMuted">of {m.target}g</p>
                 </div>
-                <div className="h-2 rounded-full bg-surface2 overflow-hidden">
-                  <div className={`h-full rounded-full ${m.color} transition-all duration-500`} style={{ width: `${progress * 100}%` }} />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Log a Meal CTA */}

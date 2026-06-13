@@ -79,6 +79,35 @@ export function Progress() {
           </div>
         </div>
 
+        {/* Goal Progress Ring */}
+        {profile.targetWeightLbs && entries.length >= 2 && (() => {
+          const startWeight = entries[0].weightLbs;
+          const targetWeight = profile.targetWeightLbs!;
+          const totalDelta = Math.abs(startWeight - targetWeight);
+          const currentDelta = Math.abs(startWeight - latest.weightLbs);
+          const ratio = totalDelta === 0 ? 1 : Math.min(currentDelta / totalDelta, 1);
+          const remaining = Math.abs(latest.weightLbs - targetWeight);
+          const RADIUS = 50;
+          const CIRC = 2 * Math.PI * RADIUS;
+          return (
+            <div className="bg-surface rounded-2xl p-6 flex flex-col items-center">
+              <p className="text-xs font-semibold text-textMuted uppercase tracking-wide mb-3 self-start">Goal Progress</p>
+              <div className="relative w-32 h-32">
+                <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="var(--color-ring-track)" strokeWidth="8" />
+                  <circle cx="60" cy="60" r={RADIUS} fill="none" stroke="var(--color-success)" strokeWidth="8" strokeLinecap="round"
+                    strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - ratio)} style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl font-display font-bold text-textPrimary">{remaining.toFixed(1)}</span>
+                  <span className="text-[10px] text-textMuted">lbs to goal</span>
+                </div>
+              </div>
+              <p className="text-xs text-textMuted mt-3">Goal: {targetWeight} lbs</p>
+            </div>
+          );
+        })()}
+
         {/* Stats */}
         {entries.length > 0 && (
           <div className="bg-surface rounded-2xl p-5 grid grid-cols-2 gap-4">

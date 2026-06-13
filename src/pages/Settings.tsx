@@ -132,6 +132,17 @@ export function Settings() {
           </div>
 
           <div>
+            <label className="text-xs font-semibold text-textMuted">Target Weight (lbs, optional)</label>
+            <input
+              type="number"
+              value={profile.targetWeightLbs ?? ''}
+              onChange={(e) => update('targetWeightLbs', e.target.value === '' ? undefined : Number(e.target.value))}
+              className="w-full mt-1 rounded-xl border-2 border-surface2 px-3 py-2 text-sm text-textPrimary bg-surface focus:border-calorie outline-none"
+              placeholder="e.g. 170"
+            />
+          </div>
+
+          <div>
             <label className={labelClass}>Activity Level</label>
             <select value={profile.activityLevel} onChange={(e) => update('activityLevel', e.target.value as ActivityLevel)} className={inputClass}>
               {Object.entries(ACTIVITY_LABELS).map(([key, label]) => (
