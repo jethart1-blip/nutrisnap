@@ -147,6 +147,17 @@ export interface CustomWorkout {
   exercises: Exercise[];
 }
 
+export interface ExerciseDefinition {
+  id: string;
+  name: string;
+  slot: MuscleGroupSlot;
+  secondarySlots?: MuscleGroupSlot[];
+  equipment: EquipmentType[];
+  difficulty: "beginner" | "intermediate" | "advanced";
+  coachingCues: string[];
+  category: "compound" | "isolation" | "cardio" | "bodyweight";
+}
+
 // ==================== UNIFIED PROFILE ====================
 
 export interface UserProfile {
